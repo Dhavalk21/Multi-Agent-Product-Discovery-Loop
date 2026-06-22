@@ -81,9 +81,8 @@
             const btn = document.getElementById('ctaBtn');
             btn.disabled = true;
             btn.innerHTML = `<span>⏳ Processing Loop...</span>`;
-
-            try {
-                // REPLACE THIS STRING CONSTANT WITH YOUR ACTUAL LIVE N8N PRODUCTION WEBHOOK ENDPOINT URL
+try {
+                // YOUR LIVE PRODUCTION ENDPOINT
                 const N8N_URL = "YOUR_N8N_PRODUCTION_WEBHOOK_URL";
 
                 const response = await fetch(N8N_URL, {
@@ -92,9 +91,23 @@
                     body: JSON.stringify({ idea: inputIdea })
                 });
 
+                // 🔴 DEBUG CHECK: If the server returns an error status code, read it as text
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    alert(`Server Error (${response.status}): ${errorText.substring(0, 200)}`);
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    return;
+                }
+
                 const payload = await response.json();
-                // Accessing the exact nested structured content parsed from Agent 3 nodes output
-                const result = JSON.parse(payload.choices[0].message.content);
+                
+                // Extracting text output directly from Agent 3 
+                let rawContent = payload.choices[0].message.content;
+                
+                // Clean up any accidental ```json block wrappers from the LLM
+                rawContent = rawContent.replace(/```json/g, "").replace(/```/g, "").trim();
+                
+                const result = JSON.parse(rawContent);
 
                 // Inject dynamic content strings into separate component panels
                 document.getElementById('panel-market').innerText = result.market_gaps;
@@ -104,12 +117,6 @@
 
                 // Reveal Output Displays
                 document.getElementById('outputWorkspace').classList.remove('hidden');
-            } catch (err) {
-                alert("Runtime API Orchestration Error: " + err);
-                document.getElementById('emptyState').classList.remove('hidden');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<span>🚀 Launch Agent Loop</span>`;
             }
         }
 

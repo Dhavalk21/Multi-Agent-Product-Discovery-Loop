@@ -30,8 +30,8 @@
 
                 <div id="terminalBlock" class="hidden bg-black border border-gray-800 rounded-xl p-4 font-mono text-xs space-y-2 text-green-400 max-h-48 overflow-y-auto shadow-2xl">
                     <div class="text-gray-500">> [SYSTEM] Initializing Graph Orchestration Node...</div>
-                    <div id="tStep1" class="hidden">> [AGENT 1] Analyzing competitor gaps via Perplexity search vectors...</div>
-                    <div id="tStep2" class="hidden">> [AGENT 2] Spawning 3 adversarial consumer profiles for critique validation...</div>
+                    <div id="tStep1" class="hidden">> [AGENT 1] Analyzing competitor gaps via market vectors...</div>
+                    <div id="tStep2" class="hidden">> [AGENT 2] Spawning adversarial consumer profiles for validation...</div>
                     <div id="tStep3" class="hidden">> [AGENT 3] Compiling structural JSON outputs & Jira schemas...</div>
                 </div>
             </div>
@@ -43,7 +43,7 @@
                     <p class="text-sm text-gray-600 mt-1">Configure inputs and execute the live pipeline to stream technical documentation deliverables.</p>
                 </div>
 
-                <div id="outputWorkspace" class="hidden space-y-6 animate-fade-in">
+                <div id="outputWorkspace" class="hidden space-y-6">
                     <div class="flex border-b border-gray-800 space-x-4">
                         <button onclick="switchTab('market')" id="tab-market" class="py-2 px-4 border-b-2 border-blue-500 text-white font-medium text-sm">Market Gaps</button>
                         <button onclick="switchTab('personas')" id="tab-personas" class="py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-white font-medium text-sm">Persona Critique</button>
@@ -86,8 +86,8 @@
             btn.disabled = true;
             btn.innerHTML = `<span>⏳ Processing Loop...</span>`;
 
-           try {
-                // YOUR N8N ENDPOINT
+            try {
+                // ⚠️ PASTE YOUR COPIED PRODUCTION WEBHOOK LINK FROM N8N DIRECTLY BELOW:
                 const N8N_URL = "https://kd05.app.n8n.cloud/webhook/product-discovery";
 
                 const response = await fetch(N8N_URL, {
@@ -103,36 +103,49 @@
                     return;
                 }
 
-                // Get the raw text first to see exactly what n8n sent back
                 const rawResponseText = await response.text();
-                
                 if (!rawResponseText || rawResponseText.trim() === "") {
-                    alert("⚠️ The server completed the run but returned an empty response string. Check that your n8n workflow toggle is switched to ACTIVE.");
+                    alert("⚠️ The server executed successfully but returned a blank response.");
                     document.getElementById('emptyState').classList.remove('hidden');
                     return;
                 }
 
-                // Safely parse the response string now that we know it has data
-                const payload = JSON.parse(rawResponseText);
-                
-                // Read text response out of your custom Agent 3 schema mapping
-                let rawContent = payload.choices[0].message.content;
+                let payload = JSON.parse(rawResponseText);
+                let rawContent = "";
+
+                // Universal content key mapper layer
+                if (payload.choices && payload.choices[0] && payload.choices[0].message) {
+                    rawContent = payload.choices[0].message.content;
+                } else if (typeof payload === 'string') {
+                    rawContent = payload;
+                } else if (payload.output || payload.text) {
+                    rawContent = payload.output || payload.text;
+                } else {
+                    rawContent = rawResponseText;
+                }
+
+                // Clean up markdown block wrappers
                 rawContent = rawContent.replace(/```json/g, "").replace(/```/g, "").trim();
                 
                 const result = JSON.parse(rawContent);
 
-                // Inject dynamic content strings into separate component panels
-                document.getElementById('panel-market').innerText = result.market_gaps;
-                document.getElementById('panel-personas').innerText = result.persona_feedback;
-                document.getElementById('panel-prd').innerText = result.prd_markdown;
-                document.getElementById('panel-jira').innerText = result.jira_tickets;
+                // Inject target properties directly into UI placeholders
+                document.getElementById('panel-market').innerText = result.market_gaps || "No market research generated.";
+                document.getElementById('panel-personas').innerText = result.persona_feedback || "No persona logs generated.";
+                document.getElementById('panel-prd').innerText = result.prd_markdown || "No PRD framework generated.";
+                document.getElementById('panel-jira').innerText = result.jira_tickets || "No scrum tickets generated.";
 
                 // Reveal Output Displays
                 document.getElementById('outputWorkspace').classList.remove('hidden');
+            } catch (err) {
+                alert("Runtime Execution Error: " + err);
+                document.getElementById('emptyState').classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>🚀 Launch Agent Loop</span>`;
             }
         }
 
-        // Dedicated Tab Switching Function Execution Block
         function switchTab(activePanel) {
             const tabs = ['market', 'personas', 'prd', 'jira'];
             tabs.forEach(tab => {

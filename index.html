@@ -4,23 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Autonomous Agentic Discovery Loop</title>
-    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-    <script src="[https://cdn.jsdelivr.net/npm/marked/marked.min.js](https://cdn.jsdelivr.net/npm/marked/marked.min.js)"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        /* Modern Pro Styling for Embedded Generated Elements */
-        .prose h1 { font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-top: 1.25rem; margin-bottom: 0.5rem; }
-        .prose h2 { font-size: 1.25rem; font-weight: 600; color: #f3f4f6; margin-top: 1.25rem; margin-bottom: 0.5rem; border-b: 1px solid #374151; padding-bottom: 0.25rem; }
-        .prose h3 { font-size: 1.1rem; font-weight: 600; color: #9ca3af; margin-top: 1rem; margin-bottom: 0.25rem; }
-        .prose p { margin-bottom: 0.75rem; color: #d1d5db; line-height: 1.6; }
-        .prose ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.75rem; color: #d1d5db; }
-        .prose li { margin-bottom: 0.25rem; }
-        .prose strong { color: #3b82f6; font-weight: 600; }
-        .prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; text-align: left; }
-        .prose th { bg-color: #1f2937; color: #ffffff; padding: 0.5rem; border: 1px solid #374151; font-weight: 600; }
-        .prose td { padding: 0.5rem; border: 1px solid #374151; color: #d1d5db; }
-        .prose tr:nth-child(even) { background-color: #111827; }
-        .prose a { color: #60a5fa; text-decoration: underline; font-weight: 500; }
-        .prose a:hover { color: #93c5fd; }
+        /* Custom styles to ensure Markdown elements render beautifully inside Tailwind */
+        .markdown-container h1 { font-size: 1.75rem; font-weight: 700; color: #ffffff; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .markdown-container h2 { font-size: 1.4rem; font-weight: 600; color: #f3f4f6; margin-top: 1.5rem; margin-bottom: 0.75rem; border-b: 1px solid #374151; padding-bottom: 0.25rem; }
+        .markdown-container h3 { font-size: 1.15rem; font-weight: 600; color: #60a5fa; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+        .markdown-container p { margin-bottom: 0.75rem; color: #d1d5db; line-height: 1.6; }
+        .markdown-container ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; color: #d1d5db; }
+        .markdown-container ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1rem; color: #d1d5db; }
+        .markdown-container li { margin-bottom: 0.35rem; }
+        .markdown-container strong { color: #f3f4f6; font-weight: 600; }
+        .markdown-container table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.9rem; text-align: left; }
+        .markdown-container th { background-color: #1f2937; color: #ffffff; padding: 0.6rem; border: 1px solid #374151; font-weight: 600; }
+        .markdown-container td { padding: 0.6rem; border: 1px solid #374151; color: #d1d5db; }
+        .markdown-container tr:nth-child(even) { background-color: #111827; }
+        .markdown-container a { color: #3b82f6; text-decoration: underline; font-weight: 500; }
+        .markdown-container a:hover { color: #60a5fa; }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen font-sans">
@@ -68,10 +69,10 @@
                         <button onclick="switchTab('jira')" id="tab-jira" class="py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-white font-medium text-sm whitespace-nowrap">Jira Backlog Manifest</button>
                     </div>
 
-                    <div id="panel-market" class="prose bg-gray-900 border border-gray-800 p-6 rounded-xl text-sm text-gray-300"></div>
-                    <div id="panel-personas" class="hidden prose bg-gray-900 border border-gray-800 p-6 rounded-xl text-sm text-gray-300"></div>
-                    <div id="panel-prd" class="hidden prose bg-gray-900 border border-gray-800 p-6 rounded-xl text-sm text-gray-300"></div>
-                    <div id="panel-jira" class="hidden prose bg-gray-900 border border-gray-800 p-6 rounded-xl text-sm text-gray-300"></div>
+                    <div id="panel-market" class="markdown-container bg-gray-900 border border-gray-800 p-6 rounded-xl text-sm text-gray-300"></div>
+                    <div id="panel-personas" class="hidden markdown-container bg-gray-900 border border-gray-800 p-6 rounded-xl text-sm text-gray-300"></div>
+                    <div id="panel-prd" class="hidden markdown-container bg-gray-900 border border-gray-800 p-6 rounded-xl text-sm text-gray-300"></div>
+                    <div id="panel-jira" class="hidden markdown-container bg-gray-900 border border-gray-800 p-6 rounded-xl text-sm text-gray-300"></div>
                 </div>
             </div>
 
@@ -141,17 +142,15 @@
                     innerTextData = typeof payload === 'string' ? payload : JSON.stringify(payload);
                 }
 
-                // If the content payload string itself is an internal JSON structure object, parse it
                 let result = {};
                 try {
                     innerTextData = innerTextData.replace(/```json/g, "").replace(/```/g, "").trim();
                     result = JSON.parse(innerTextData);
                 } catch (e) {
-                    // Fallback configuration if n8n unpacks the object keys cleanly at base root levels
                     result = payload[0] || payload;
                 }
 
-                // 🌟 INJECT VIA MARKED JS PARSER FOR BEAUTIFUL ELEMENT RENDERING
+                // Inject formatted Markdown elements via Marked Engine
                 document.getElementById('panel-market').innerHTML = marked.parse(result.market_gaps || "No market data parsed.");
                 document.getElementById('panel-personas').innerHTML = marked.parse(result.persona_feedback || "No persona data parsed.");
                 document.getElementById('panel-prd').innerHTML = marked.parse(result.prd_markdown || "No PRD document text parsed.");

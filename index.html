@@ -83,7 +83,7 @@
             btn.innerHTML = `<span>⏳ Processing Loop...</span>`;
 try {
                 // YOUR LIVE PRODUCTION ENDPOINT
-                const N8N_URL = "YOUR_N8N_PRODUCTION_WEBHOOK_URL";
+                const N8N_URL = "https://kd05.app.n8n.cloud/webhook/product-discovery";
 
                 const response = await fetch(N8N_URL, {
                     method: 'POST',

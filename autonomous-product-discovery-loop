@@ -1,0 +1,607 @@
+{
+  "name": "Autonomous Product Discovery Loop",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "product-discovery",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f255984b-46ae-423b-bbdd-787b6d2f29ab",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -544,
+        -800
+      ],
+      "webhookId": "YOUR_WEBHOOK_ID_HERE"
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "model": "gpt-4o-mini",
+        "prompt": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "=You are an elite Principal Market Research Analyst and Strategy Consultant.  Analyze the following idea:  {{ $json.body.idea }}  CRITICAL:  Never provide generic templates or broad advice.  Everything must be specific to the exact industry and problem described.  Name real competitors, products, APIs, ecosystems, and workflows relevant to this industry.  Use Blue Ocean Strategy, Porter's Five Forces, and Jobs-To-Be-Done (JTBD) thinking.  Show a deep understanding of how users currently solve this problem.    Provide a deep analysis covering:  1. Competitive Landscape Identify direct, indirect, and adjacent competitors (2 to 3 real companies). Explain their strengths, weaknesses, pricing model, and execution limitations.  2. Market Gaps Explain where existing solutions fail, including workflow, integration, trust, AI, and user experience gaps. Describe why these gaps still exist and who suffers most.  3. User Workflow Describe how users solve this problem today, the tools they combine, manual workarounds, and major pain points.  4. Defensive Moats Identify potential data, workflow, integration, network, community, and distribution moats, and explain how they create long-term advantages.  5. Ecosystem Opportunities List relevant APIs, platforms, partners, and adjacent products that could accelerate development or distribution.  6. Opportunity Assessment Rank the top opportunities by market pain, willingness to pay, competition, technical complexity, and defensibility.  AUTHENTICITY REQUIREMENTS:  Use only real companies, products, APIs, and industry ecosystems.  Never invent citations or URLs.  If a reference is uncertain, state \"Reference unavailable\" rather than guessing.  Organize using Markdown headings and concise tables.  Prioritize depth and specificity over breadth.  The final output should resemble institutional-grade research produced by McKinsey, BCG, or Sequoia rather than a generic ChatGPT response."
+            },
+            {
+              "content": "={{ $node[\"Orchestrator: Input Optimizer\"].json.output.optimized_concept }}"
+            }
+          ]
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "id": "a406a76e-1ef3-419a-9c9e-acf433c5b6c0",
+      "name": "Agent 1: Market Researcher",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        -800
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIALS_ID",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "model": "gpt-4o-mini",
+        "prompt": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "=You are an expert focus group moderator conducting a harsh, adversarial review of this product:  {{ $json.body.idea }}  CRITICAL:  Avoid generic personas. Create 3 realistic user profiles specific to this product and its target audience.  Simulate skeptical users, not supporters.  Focus on real-world behavior, fears, and objections.  For each persona, provide:  Profile Demographics and technical ability  Current tools and workflows  Core Frictions Biggest pain points and adoption barriers  Trust, privacy, cost, complexity, and UX concerns  Situations where this product fails their expectations  Brutal User Quotes Include direct, emotional reactions showing skepticism and resistance.  Why They Wouldn't Switch Explain why existing solutions or habits are \"good enough\".  Community Validation -Map each concern to relevant communities, subreddits, forums, reviews, or user complaints (e.g. r/personalfinance, r/nutrition, Product Hunt, App Store reviews).  - Community Validation Reference: Link each persona's specific anxiety directly to realistic online community validation hubs, referencing subreddits or active forums matching the domain (e.g., [Source: r/nutrition], [Validation: r/instacart shopper forums], [Source: r/diabetes]).    - Prioritize specificity, realism, and uncomfortable truths over optimism."
+            },
+            {
+              "content": "=Concept: {{ $node[\"Orchestrator: Input Optimizer\"].json.output.optimized_concept }}\nMarket Research Draft: {{ $node[\"Agent 1: Market Researcher\"].json.message.content }}"
+            }
+          ]
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "id": "3f2a467f-6d73-49cc-9291-278199c54d24",
+      "name": "Agent 2: Persona Group",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        384,
+        -800
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIALS_ID",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "model": "gpt-4o-mini",
+        "prompt": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "=--- INCOMING RESEARCH DATA TO USE ---\nMARKET RESEARCH INPUT: \n{{ $node[\"Orchestrator: Market Evaluator\"].json.market_gaps }}\n\nPERSONA FEEDBACK INPUT: \n{{ $node[\"Orchestrator: Persona Evaluator\"].json.persona_feedback }}\n-------------------------------------\n\nYou are the Lead Principal Product Architect.\nUsing the market research and persona feedback provided as input, synthesize everything into a domain-specific delivery plan.\n\nCRITICAL JSON STRUCTURAL RULES:\n1. Produce a single valid JSON object. No markdown code fences.\n2. Customize everything to the specific product and industry. Do not use robotic jargon. Keep language conversational, technical, and direct.   \n3. Use real technical constraints, integrations, compliance requirements, and domain terminology where applicable.\n4. Return exactly this schema:\n{\n\"market_gaps\": \"...\",\n\"persona_feedback\": \"...\",\n\"prd_markdown\": \"...\",\n\"jira_tickets\": \"...\"\n}\n\nFIELD REQUIREMENTS:\n- market_gaps: Summarize the key opportunities and competitive gaps from previous research.\n- persona_feedback: Summarize the major objections, adoption barriers, and insights from the focus group.\n- jira_tickets: Generate prioritized epics and user stories using IDs like PROD-101, PROD-102, etc.\n\nCRITICAL PRD_MARKDOWN STRUCTURAL INSTRUCTION:\nFor the \"prd_markdown\" field, you are STRICTLY FORBIDDEN from omitting, shortening, or rewriting the headers below. You must generate copy for EVERY SINGLE SECTION. If data is missing for a section, deduce a highly logical engineering/product response based on the FinTech industry context. Do not use em-dashes (—) unless specified in the Features section format.\n\nYou MUST copy and fill out this exact Markdown template verbatim:\n\n# PRD\n\n## Product Overview\n- [Brief description of what is being built and why it matters]\n\n## Problem Statement\n- [What user problem are we solving?]\n- [Why does it matter now?]\n\n## Objectives (Success Intent)\n- [Objective 1]\n- [Objective 2]\n\n## Constraints\n- [Time / Scope]\n- [Technical limitations]\n- [Business / legal / dependency constraints]\n\n## Personas\n- **Primary Persona:** [Details]\n- **Secondary Persona(s):** [Details]\n\n## Key Use Cases\n- [Use Case 1]\n- [Use Case 2]\n- [Use Case 3] \n\n## Features In Scope\n- [Feature 1] — [brief description + why it matters + MVP/Must-have/Nice-to-have Tag]\n- [Feature 2] — [brief description + why it matters + MVP/Must-have/Nice-to-have Tag]\n- [Feature 3] — [brief description + why it matters + MVP/Must-have/Nice-to-have Tag]\n\n## Success Definition\n- [Metric 1 (baseline -> target)]\n- [Metric 2]\n- [Metric 3]\n\n## Success Criteria\n- [What must be true for this to be considered successful?]\n\n## Risks, Open Questions & Dependencies\n### Open Issues\n- [Key unknowns]\n- [Pending decisions]\n\n### Risks\n- [Technical risks]\n- [Product risks]\n- [Market risks]\n\n### Dependencies\n- [Internal teams]\n- [External vendors]\n- [Platform constraints]"
+            },
+            {
+              "content": "=Verified Market Gaps: {{ $node[\"Orchestrator: Market Evaluator\"].json.output.market_gaps }}Verified Persona Feedback: {{ $node[\"Orchestrator: Persona Evaluator\"].json.output.persona_feedback }}"
+            }
+          ]
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "id": "d5adb85c-1aa4-468e-8179-10ab09130562",
+      "name": "Agent 3: PRD Synthesizer",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        848,
+        -800
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIALS_ID",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "b6e3f353-b607-43b5-8ed1-cfd734d00a4e",
+      "name": "Respond to Webpage",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1536,
+        -800
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -336,
+        -560
+      ],
+      "id": "f47e53b7-59b8-4ec2-9220-be4897c56fd1",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIALS_ID",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.idea }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are the Master Product Architect Orchestrator. Look at the user's raw product concept. If the concept is vague, expand it into a clear, professional description. If critical market details are missing, make realistic, practical business assumptions to fill the gaps. Keep the original main objective intact. Do not change the core idea. Write your response in simple, plain layman English. "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -336,
+        -800
+      ],
+      "id": "ceec881b-9cc4-4586-851e-048efd9f1f27",
+      "name": "Orchestrator: Input Optimizer"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $node[\"Agent 1: Market Researcher\"].json.message.content }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are the Quality Control Orchestrator evaluating the market research draft. Check if the text uses simple, layman English, has real-world matching reference links, and avoids em-dashes or robotic words. If it fails, rewrite it immediately to fix the issues while keeping the data intact. You only get 1 chance to fix it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        96,
+        -800
+      ],
+      "id": "d6fec342-3f7b-4c19-9c7b-5866d00496d0",
+      "name": "Orchestrator: Market Evaluator"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        -544
+      ],
+      "id": "0a99619f-7d1b-4d93-94fe-64323e22934c",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIALS_ID",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"market_gaps\": \"Your clean text goes here\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        -480
+      ],
+      "id": "895b4eb7-dd61-4814-8ea5-0980ddcae574",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $node[\"Agent 2: Persona Group\"].json.message.content }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are the Quality Control Orchestrator evaluating the persona feedback. Make sure the feedback is split by User 1, User 2, User 3, and User 4 with simple bullet points and real community platform name citations. Remove any em-dashes and fix robotic language. You have 1 chance to rewrite and clean the text if it looks robotic."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        544,
+        -800
+      ],
+      "id": "f8b2d57c-25fe-433f-9770-cdfef79ad739",
+      "name": "Orchestrator: Persona Evaluator"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        544,
+        -544
+      ],
+      "id": "c3c63efe-4add-4b3d-9ca1-5bc461ecc6ba",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIALS_ID",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Market Gaps Data: {{ $node[\"Orchestrator: Market Evaluator\"].json.output.market_gaps }}\n\nPersona Feedback Data: {{ $node[\"Orchestrator: Persona Evaluator\"].json.output.persona_feedback }}\n\nFinal PRD Draft: {{ $node[\"Agent 3: PRD Synthesizer\"].json.output.prd_markdown }}\n\nJira Backlog: {{ $node[\"Agent 3: PRD Synthesizer\"].json.output.jira_tickets }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are the Master Orchestrator delivering the final dashboard data. Combine all incoming pieces. Ensure the PRD template is fully followed, text is in plain conversational English, and no em-dashes exist anywhere. You must return a clean JSON structure with exactly these keys: market_gaps, persona_feedback, prd_markdown, and jira_tickets. Do not include markdown code block wrapper symbols."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1024,
+        -800
+      ],
+      "id": "ce325a36-3562-42a0-bffd-19bdd47406a9",
+      "name": "Orchestrator: Final Manifest Reviewer"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1024,
+        -576
+      ],
+      "id": "f9a75968-04df-4caa-8b34-baef850b5f67",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIALS_ID",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"optimized_concept\": \"Your optimized product description text here\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -192,
+        -480
+      ],
+      "id": "556c5e0a-95bf-4731-b5eb-1efd287a5e80",
+      "name": "optimized_concept"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2dae3568-e0a8-4bd8-a19b-088189b15d13",
+              "name": "market_gaps",
+              "value": "={{ $json.output.market_gaps }}",
+              "type": "string"
+            },
+            {
+              "id": "47ea81cd-e3eb-4322-ba41-04821c56468a",
+              "name": "persona_feedback",
+              "value": "={{ $json.output.persona_feedback }}",
+              "type": "string"
+            },
+            {
+              "id": "59c2a9eb-1770-49de-8c0a-2abfdec01e4a",
+              "name": "prd_markdown",
+              "value": "={{ $json.output.prd_markdown }}",
+              "type": "string"
+            },
+            {
+              "id": "9b7924e3-9df6-42d7-93cb-8c6423b806b5",
+              "name": "jira_tickets",
+              "value": "={{ $json.output.jira_tickets }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1344,
+        -800
+      ],
+      "id": "5b171a29-b9f6-4688-af46-7a8bfe73bfdb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"market_gaps\": \"text\",\n  \"persona_feedback\": \"text\",\n  \"prd_markdown\": \"text\",\n  \"jira_tickets\": \"text\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1168,
+        -496
+      ],
+      "id": "6d068684-69b2-4df8-b658-037be8dd0c3a",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"persona_feedback\": \"Your clean humanized text goes here\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        688,
+        -480
+      ],
+      "id": "9b458944-bbb2-4725-a939-0ec08323a06b",
+      "name": "Structured Output Parser1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Orchestrator: Input Optimizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 1: Market Researcher": {
+      "main": [
+        [
+          {
+            "node": "Orchestrator: Market Evaluator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 2: Persona Group": {
+      "main": [
+        [
+          {
+            "node": "Orchestrator: Persona Evaluator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 3: PRD Synthesizer": {
+      "main": [
+        [
+          {
+            "node": "Orchestrator: Final Manifest Reviewer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Orchestrator: Input Optimizer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orchestrator: Input Optimizer": {
+      "main": [
+        [
+          {
+            "node": "Agent 1: Market Researcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Orchestrator: Market Evaluator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Orchestrator: Market Evaluator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orchestrator: Market Evaluator": {
+      "main": [
+        [
+          {
+            "node": "Agent 2: Persona Group",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Orchestrator: Persona Evaluator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orchestrator: Persona Evaluator": {
+      "main": [
+        [
+          {
+            "node": "Agent 3: PRD Synthesizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Orchestrator: Final Manifest Reviewer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Orchestrator: Final Manifest Reviewer": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "optimized_concept": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Orchestrator: Input Optimizer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webpage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Orchestrator: Final Manifest Reviewer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Orchestrator: Persona Evaluator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  },
+  "nodeGroups": [],
+  "id": "",
+  "tags": []
+}

@@ -4,7 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Autonomous Agentic Discovery Loop</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <script src="[https://cdn.jsdelivr.net/npm/marked/marked.min.js](https://cdn.jsdelivr.net/npm/marked/marked.min.js)"></script>
+    <style>
+        /* Modern Pro Styling for Embedded Generated Elements */
+        .prose h1 { font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+        .prose h2 { font-size: 1.25rem; font-weight: 600; color: #f3f4f6; margin-top: 1.25rem; margin-bottom: 0.5rem; border-b: 1px solid #374151; padding-bottom: 0.25rem; }
+        .prose h3 { font-size: 1.1rem; font-weight: 600; color: #9ca3af; margin-top: 1rem; margin-bottom: 0.25rem; }
+        .prose p { margin-bottom: 0.75rem; color: #d1d5db; line-height: 1.6; }
+        .prose ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.75rem; color: #d1d5db; }
+        .prose li { margin-bottom: 0.25rem; }
+        .prose strong { color: #3b82f6; font-weight: 600; }
+        .prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; text-align: left; }
+        .prose th { bg-color: #1f2937; color: #ffffff; padding: 0.5rem; border: 1px solid #374151; font-weight: 600; }
+        .prose td { padding: 0.5rem; border: 1px solid #374151; color: #d1d5db; }
+        .prose tr:nth-child(even) { background-color: #111827; }
+        .prose a { color: #60a5fa; text-decoration: underline; font-weight: 500; }
+        .prose a:hover { color: #93c5fd; }
+    </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen font-sans">
 
@@ -44,17 +61,17 @@
                 </div>
 
                 <div id="outputWorkspace" class="hidden space-y-6">
-                    <div class="flex border-b border-gray-800 space-x-4">
-                        <button onclick="switchTab('market')" id="tab-market" class="py-2 px-4 border-b-2 border-blue-500 text-white font-medium text-sm">Market Gaps</button>
-                        <button onclick="switchTab('personas')" id="tab-personas" class="py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-white font-medium text-sm">Persona Critique</button>
-                        <button onclick="switchTab('prd')" id="tab-prd" class="py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-white font-medium text-sm">PRD Document</button>
-                        <button onclick="switchTab('jira')" id="tab-jira" class="py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-white font-medium text-sm">Jira Backlog Manifest</button>
+                    <div class="flex border-b border-gray-800 space-x-4 overflow-x-auto">
+                        <button onclick="switchTab('market')" id="tab-market" class="py-2 px-4 border-b-2 border-blue-500 text-white font-medium text-sm whitespace-nowrap">Market Gaps</button>
+                        <button onclick="switchTab('personas')" id="tab-personas" class="py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-white font-medium text-sm whitespace-nowrap">Persona Critique</button>
+                        <button onclick="switchTab('prd')" id="tab-prd" class="py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-white font-medium text-sm whitespace-nowrap">PRD Document</button>
+                        <button onclick="switchTab('jira')" id="tab-jira" class="py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-white font-medium text-sm whitespace-nowrap">Jira Backlog Manifest</button>
                     </div>
 
-                    <div id="panel-market" class="bg-gray-900 border border-gray-800 p-6 rounded-xl whitespace-pre-wrap text-sm leading-relaxed text-gray-300"></div>
-                    <div id="panel-personas" class="hidden bg-gray-900 border border-gray-800 p-6 rounded-xl whitespace-pre-wrap text-sm leading-relaxed text-gray-300"></div>
-                    <div id="panel-prd" class="hidden bg-gray-900 border border-gray-800 p-6 rounded-xl whitespace-pre-wrap font-mono text-xs leading-relaxed text-blue-400"></div>
-                    <div id="panel-jira" class="hidden bg-gray-900 border border-gray-800 p-6 rounded-xl whitespace-pre-wrap text-sm leading-relaxed text-gray-300"></div>
+                    <div id="panel-market" class="prose bg-gray-900 border border-gray-800 p-6 rounded-xl text-sm text-gray-300"></div>
+                    <div id="panel-personas" class="hidden prose bg-gray-900 border border-gray-800 p-6 rounded-xl text-sm text-gray-300"></div>
+                    <div id="panel-prd" class="hidden prose bg-gray-900 border border-gray-800 p-6 rounded-xl text-sm text-gray-300"></div>
+                    <div id="panel-jira" class="hidden prose bg-gray-900 border border-gray-800 p-6 rounded-xl text-sm text-gray-300"></div>
                 </div>
             </div>
 
@@ -69,25 +86,22 @@
                 return;
             }
 
-            // Reset UI States
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('outputWorkspace').classList.add('hidden');
             
             const term = document.getElementById('terminalBlock');
             term.classList.remove('hidden');
 
-            // Simulate Agent Traversal Steps visually
             setTimeout(() => { document.getElementById('tStep1').classList.remove('hidden'); }, 500);
             setTimeout(() => { document.getElementById('tStep2').classList.remove('hidden'); }, 1500);
             setTimeout(() => { document.getElementById('tStep3').classList.remove('hidden'); }, 3000);
 
-            // Change CTA Button to processing layout state
             const btn = document.getElementById('ctaBtn');
             btn.disabled = true;
             btn.innerHTML = `<span>⏳ Processing Loop...</span>`;
 
-         try {
-                // YOUR LIVE PRODUCTION WEBHOOK ENDPOINT URL FROM N8N
+            try {
+                // ⚠️ PASTE YOUR COPIED PRODUCTION WEBHOOK LINK FROM N8N DIRECTLY BELOW:
                 const N8N_URL = "https://kd05.app.n8n.cloud/webhook/product-discovery";
 
                 const response = await fetch(N8N_URL, {
@@ -113,7 +127,6 @@
                 let payload = JSON.parse(rawResponseText);
                 let innerTextData = "";
 
-                // 1. EXTRACT THE INNER CONTENT STRING
                 if (payload.message && payload.message.content) {
                     innerTextData = payload.message.content;
                 } else if (payload.choices && payload.choices[0] && payload.choices[0].message) {
@@ -122,28 +135,32 @@
                     let item = payload[0];
                     if (item.message && item.message.content) innerTextData = item.message.content;
                     else if (item.choices && item.choices[0] && item.choices[0].message) innerTextData = item.choices[0].message.content;
+                    else if (item.market_gaps) innerTextData = JSON.stringify(item);
                     else innerTextData = typeof item === 'string' ? item : JSON.stringify(item);
                 } else {
                     innerTextData = typeof payload === 'string' ? payload : JSON.stringify(payload);
                 }
 
-                // 2. STRIP AWAY MARKDOWN SYNTAX WRAPPERS IF PRESENT
-                innerTextData = innerTextData.replace(/```json/g, "").replace(/```/g, "").trim();
-                
-                // 3. PARSE INTO THE FINAL SCHEMA OBJECT
-                const result = JSON.parse(innerTextData);
+                // If the content payload string itself is an internal JSON structure object, parse it
+                let result = {};
+                try {
+                    innerTextData = innerTextData.replace(/```json/g, "").replace(/```/g, "").trim();
+                    result = JSON.parse(innerTextData);
+                } catch (e) {
+                    // Fallback configuration if n8n unpacks the object keys cleanly at base root levels
+                    result = payload[0] || payload;
+                }
 
-                // 4. INJECT EACH SPECIFIC KEY INTO ITS MATCHING UI TAB PANEL
-                document.getElementById('panel-market').innerText = result.market_gaps || "No market data found.";
-                document.getElementById('panel-personas').innerText = result.persona_feedback || "No persona data found.";
-                document.getElementById('panel-prd').innerText = result.prd_markdown || "No PRD framework found.";
-                document.getElementById('panel-jira').innerText = result.jira_tickets || "No user stories mapped.";
+                // 🌟 INJECT VIA MARKED JS PARSER FOR BEAUTIFUL ELEMENT RENDERING
+                document.getElementById('panel-market').innerHTML = marked.parse(result.market_gaps || "No market data parsed.");
+                document.getElementById('panel-personas').innerHTML = marked.parse(result.persona_feedback || "No persona data parsed.");
+                document.getElementById('panel-prd').innerHTML = marked.parse(result.prd_markdown || "No PRD document text parsed.");
+                document.getElementById('panel-jira').innerHTML = marked.parse(result.jira_tickets || "No user stories parsed.");
 
-                // Reveal Output Workspace Section Containers
                 document.getElementById('outputWorkspace').classList.remove('hidden');
             } catch (err) {
                 console.error("Parsing Exception trace:", err);
-                alert("Formatting Error: " + err.message + "\n\nWe couldn't unpack the tab data safely. Check your browser console log for details.");
+                alert("Formatting Error: " + err.message);
                 document.getElementById('emptyState').classList.remove('hidden');
             } finally {
                 btn.disabled = false;

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Agentic Discovery Loop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen font-sans">
+
+    <div class="max-w-6xl mx-auto p-6">
+        <header class="border-b border-gray-800 pb-4 mb-8">
+            <h1 class="text-3xl font-bold tracking-tight text-white">🤖 Multi-Agent Autonomous Product Discovery</h1>
+            <p class="text-gray-400 mt-1">Orchestrating non-deterministic agent workflows for instant validation & technical scoping.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="space-y-6">
+                <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl shadow-xl">
+                    <h2 class="text-xl font-bold text-white mb-4">📥 Input Command Center</h2>
+                    
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Raw Product Concept</label>
+                    <textarea id="productIdea" rows="5" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-3 text-gray-200 focus:outline-none focus:border-blue-500 mb-4" placeholder="e.g., Add gamified micro-investing loops into our banking application targeted at Gen-Z users..."></textarea>
+                    
+                    <button onclick="runDiscoveryPipeline()" id="ctaBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2">
+                        <span>🚀 Launch Agent Loop</span>
+                    </button>
+                </div>
+
+                <div id="terminalBlock" class="hidden bg-black border border-gray-800 rounded-xl p-4 font-mono text-xs space-y-2 text-green-400 max-h-48 overflow-y-auto shadow-2xl">
+                    <div class="text-gray-500">> [SYSTEM] Initializing Graph Orchestration Node...</div>
+                    <div id="tStep1" class="hidden">> [AGENT 1] Analyzing competitor gaps via Perplexity search vectors...</div>
+                    <div id="tStep2" class="hidden">> [AGENT 2] Spawning 3 adversarial consumer profiles for critique validation...</div>
+                    <div id="tStep3" class="hidden">> [AGENT 3] Compiling structural JSON outputs & Jira schemas...</div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2">
+                <div id="emptyState" class="bg-gray-900 border border-gray-800 border-dashed rounded-xl p-12 text-center text-gray-500 flex flex-col items-center justify-center h-full min-h-[400px]">
+                    <span class="text-4xl mb-4">📊</span>
+                    <p class="text-lg font-medium text-gray-400">Artifact Workspace Empty</p>
+                    <p class="text-sm text-gray-600 mt-1">Configure inputs and execute the live pipeline to stream technical documentation deliverables.</p>
+                </div>
+
+                <div id="outputWorkspace" class="hidden space-y-6 animate-fade-in">
+                    <div class="flex border-b border-gray-800 space-x-4">
+                        <button onclick="switchTab('market')" id="tab-market" class="py-2 px-4 border-b-2 border-blue-500 text-white font-medium text-sm">Market Gaps</button>
+                        <button onclick="switchTab('personas')" id="tab-personas" class="py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-white font-medium text-sm">Persona Critique</button>
+                        <button onclick="switchTab('prd')" id="tab-prd" class="py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-white font-medium text-sm">PRD Document</button>
+                        <button onclick="switchTab('jira')" id="tab-jira" class="py-2 px-4 border-b-2 border-transparent text-gray-400 hover:text-white font-medium text-sm">Jira Backlog Manifest</button>
+                    </div>
+
+                    <div id="panel-market" class="bg-gray-900 border border-gray-800 p-6 rounded-xl whitespace-pre-wrap text-sm leading-relaxed text-gray-300"></div>
+                    <div id="panel-personas" class="hidden bg-gray-900 border border-gray-800 p-6 rounded-xl whitespace-pre-wrap text-sm leading-relaxed text-gray-300"></div>
+                    <div id="panel-prd" class="hidden bg-gray-900 border border-gray-800 p-6 rounded-xl whitespace-pre-wrap font-mono text-xs leading-relaxed text-blue-400"></div>
+                    <div id="panel-jira" class="hidden bg-gray-900 border border-gray-800 p-6 rounded-xl whitespace-pre-wrap text-sm leading-relaxed text-gray-300"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        async function runDiscoveryPipeline() {
+            const inputIdea = document.getElementById('productIdea').value;
+            if(!inputIdea) return alert("Please enter a concept prompt target first.");
+
+            // Reset UI States
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('outputWorkspace').classList.add('hidden');
+            const term = document.getElementById('terminalBlock');
+            term.classList.remove('hidden');
+
+            // Simulate Agent Traversal Steps visually
+            setTimeout(() => document.getElementById('tStep1').classList.remove('hidden'), 500);
+            setTimeout(() => document.getElementById('tStep2').classList.remove('hidden'), 1500);
+            setTimeout(() => document.getElementById('tStep3').classList.remove('hidden'), 3000);
+
+            // Change CTA Button to processing layout state
+            const btn = document.getElementById('ctaBtn');
+            btn.disabled = true;
+            btn.innerHTML = `<span>⏳ Processing Loop...</span>`;
+
+            try {
+                // REPLACE THIS STRING CONSTANT WITH YOUR ACTUAL LIVE N8N PRODUCTION WEBHOOK ENDPOINT URL
+                const N8N_URL = "YOUR_N8N_PRODUCTION_WEBHOOK_URL";
+
+                const response = await fetch(N8N_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idea: inputIdea })
+                });
+
+                const payload = await response.json();
+                // Accessing the exact nested structured content parsed from Agent 3 nodes output
+                const result = JSON.parse(payload.choices[0].message.content);
+
+                // Inject dynamic content strings into separate component panels
+                document.getElementById('panel-market').innerText = result.market_gaps;
+                document.getElementById('panel-personas').innerText = result.persona_feedback;
+                document.getElementById('panel-prd').innerText = result.prd_markdown;
+                document.getElementById('panel-jira').innerText = result.jira_tickets;
+
+                // Reveal Output Displays
+                document.getElementById('outputWorkspace').classList.remove('hidden');
+            } catch (err) {
+                alert("Runtime API Orchestration Error: " + err);
+                document.getElementById('emptyState').classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>🚀 Launch Agent Loop</span>`;
+            }
+        }
+
+        function switchTab(activePanel) {
+            const tabs = ['market', 'personas', 'prd', 'jira'];
+            tabs.forEach(tab => {
+                const btn = document.getElementById(`tab-${tab}`);
+                const panel = document.getElementById(`panel-${tab}`);
+                if(tab === activePanel) {
+                    btn.classList.add('border-blue-500', 'text-white');
+                    btn.classList.remove('border-transparent', 'text-gray-400');
+                    panel.classList.remove('hidden');
+                } else {
+                    btn.classList.remove('border-blue-500', 'text-white');
+                    btn.classList.add('border-transparent', 'text-gray-400');
+                    panel.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

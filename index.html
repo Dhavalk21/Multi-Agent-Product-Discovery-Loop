@@ -64,25 +64,30 @@
     <script>
         async function runDiscoveryPipeline() {
             const inputIdea = document.getElementById('productIdea').value;
-            if(!inputIdea) return alert("Please enter a concept prompt target first.");
+            if (!inputIdea) {
+                alert("Please enter a concept prompt target first.");
+                return;
+            }
 
             // Reset UI States
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('outputWorkspace').classList.add('hidden');
+            
             const term = document.getElementById('terminalBlock');
             term.classList.remove('hidden');
 
             // Simulate Agent Traversal Steps visually
-            setTimeout(() => document.getElementById('tStep1').classList.remove('hidden'), 500);
-            setTimeout(() => document.getElementById('tStep2').classList.remove('hidden'), 1500);
-            setTimeout(() => document.getElementById('tStep3').classList.remove('hidden'), 3000);
+            setTimeout(() => { document.getElementById('tStep1').classList.remove('hidden'); }, 500);
+            setTimeout(() => { document.getElementById('tStep2').classList.remove('hidden'); }, 1500);
+            setTimeout(() => { document.getElementById('tStep3').classList.remove('hidden'); }, 3000);
 
             // Change CTA Button to processing layout state
             const btn = document.getElementById('ctaBtn');
             btn.disabled = true;
             btn.innerHTML = `<span>⏳ Processing Loop...</span>`;
-try {
-                // YOUR LIVE PRODUCTION ENDPOINT
+
+            try {
+                // REPLACE THIS STRING WITH YOUR ACTUAL LIVE N8N PRODUCTION WEBHOOK ENDPOINT URL
                 const N8N_URL = "https://kd05.app.n8n.cloud/webhook/product-discovery";
 
                 const response = await fetch(N8N_URL, {
@@ -91,7 +96,6 @@ try {
                     body: JSON.stringify({ idea: inputIdea })
                 });
 
-                // 🔴 DEBUG CHECK: If the server returns an error status code, read it as text
                 if (!response.ok) {
                     const errorText = await response.text();
                     alert(`Server Error (${response.status}): ${errorText.substring(0, 200)}`);
@@ -101,10 +105,8 @@ try {
 
                 const payload = await response.json();
                 
-                // Extracting text output directly from Agent 3 
+                // Read text response out of the custom Agent 3 schema mapping
                 let rawContent = payload.choices[0].message.content;
-                
-                // Clean up any accidental ```json block wrappers from the LLM
                 rawContent = rawContent.replace(/```json/g, "").replace(/```/g, "").trim();
                 
                 const result = JSON.parse(rawContent);
@@ -117,15 +119,22 @@ try {
 
                 // Reveal Output Displays
                 document.getElementById('outputWorkspace').classList.remove('hidden');
+            } catch (err) {
+                alert("Runtime API Orchestration Error: " + err);
+                document.getElementById('emptyState').classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>🚀 Launch Agent Loop</span>`;
             }
         }
 
+        // Dedicated Tab Switching Function Execution Block
         function switchTab(activePanel) {
             const tabs = ['market', 'personas', 'prd', 'jira'];
             tabs.forEach(tab => {
                 const btn = document.getElementById(`tab-${tab}`);
                 const panel = document.getElementById(`panel-${tab}`);
-                if(tab === activePanel) {
+                if (tab === activePanel) {
                     btn.classList.add('border-blue-500', 'text-white');
                     btn.classList.remove('border-transparent', 'text-gray-400');
                     panel.classList.remove('hidden');

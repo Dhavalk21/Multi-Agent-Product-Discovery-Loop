@@ -86,8 +86,8 @@
             btn.disabled = true;
             btn.innerHTML = `<span>⏳ Processing Loop...</span>`;
 
-            try {
-                // ⚠️ PASTE YOUR COPIED PRODUCTION WEBHOOK LINK FROM N8N DIRECTLY BELOW:
+           try {
+                // YOUR LIVE PRODUCTION WEBHOOK ENDPOINT URL FROM N8N
                 const N8N_URL = "https://kd05.app.n8n.cloud/webhook/product-discovery";
 
                 const response = await fetch(N8N_URL, {
@@ -111,34 +111,46 @@
                 }
 
                 let payload = JSON.parse(rawResponseText);
-                let rawContent = "";
+                let result = null;
 
-                // Universal content key mapper layer
-                if (payload.choices && payload.choices[0] && payload.choices[0].message) {
-                    rawContent = payload.choices[0].message.content;
-                } else if (typeof payload === 'string') {
-                    rawContent = payload;
-                } else if (payload.output || payload.text) {
-                    rawContent = payload.output || payload.text;
-                } else {
-                    rawContent = rawResponseText;
+                // 🌟 DIRECT ROOT ASSIGNMENT CHECK
+                // If n8n simply forwards Agent 3's output directly at the top level
+                if (payload.market_gaps || payload.prd_markdown) {
+                    result = payload;
+                } 
+                // If wrapped inside standard webhook response array structures
+                else if (Array.isArray(payload) && payload[0]) {
+                    result = payload[0];
+                } 
+                // If wrapped inside a choices completion block layout property object
+                else if (payload.choices && payload.choices[0] && payload.choices[0].message) {
+                    let textBlock = payload.choices[0].message.content;
+                    textBlock = textBlock.replace(/```json/g, "").replace(/```/g, "").trim();
+                    result = JSON.parse(textBlock);
+                } 
+                // Standard text wrapper fallback key
+                else if (payload.output || payload.text) {
+                    let textBlock = payload.output || payload.text;
+                    textBlock = textBlock.replace(/```json/g, "").replace(/```/g, "").trim();
+                    result = JSON.parse(textBlock);
                 }
 
-                // Clean up markdown block wrappers
-                rawContent = rawContent.replace(/```json/g, "").replace(/```/g, "").trim();
-                
-                const result = JSON.parse(rawContent);
+                // If fallback mapping strategies fail to yield an internal schema object
+                if (!result || typeof result !== 'object') {
+                    throw new Error("Unable to extract valid structural JSON fields from response object keys.");
+                }
 
-                // Inject target properties directly into UI placeholders
-                document.getElementById('panel-market').innerText = result.market_gaps || "No market research generated.";
-                document.getElementById('panel-personas').innerText = result.persona_feedback || "No persona logs generated.";
-                document.getElementById('panel-prd').innerText = result.prd_markdown || "No PRD framework generated.";
-                document.getElementById('panel-jira').innerText = result.jira_tickets || "No scrum tickets generated.";
+                // Inject targeted data payload parameters cleanly into layout blocks
+                document.getElementById('panel-market').innerText = result.market_gaps || "No market data found.";
+                document.getElementById('panel-personas').innerText = result.persona_feedback || "No persona data found.";
+                document.getElementById('panel-prd').innerText = result.prd_markdown || "No PRD document text found.";
+                document.getElementById('panel-jira').innerText = result.jira_tickets || "No user stories mapped.";
 
-                // Reveal Output Displays
+                // Reveal Output Workspace Section Containers
                 document.getElementById('outputWorkspace').classList.remove('hidden');
             } catch (err) {
-                alert("Runtime Execution Error: " + err);
+                console.error("Payload Unpacking Diagnostic Exception trace:", err);
+                alert("Runtime Execution Error during Parsing: " + err + "\n\nRaw server response preview: " + rawResponseText.substring(0, 300));
                 document.getElementById('emptyState').classList.remove('hidden');
             } finally {
                 btn.disabled = false;

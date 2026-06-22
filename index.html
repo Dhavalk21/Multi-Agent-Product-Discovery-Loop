@@ -86,9 +86,9 @@
             btn.disabled = true;
             btn.innerHTML = `<span>⏳ Processing Loop...</span>`;
 
-            try {
-                // REPLACE THIS STRING WITH YOUR ACTUAL LIVE N8N PRODUCTION WEBHOOK ENDPOINT URL
-                const N8N_URL = "https://kd05.app.n8n.cloud/webhook/product-discovery";
+           try {
+                // YOUR N8N ENDPOINT
+                const N8N_URL = "YOUR_N8N_PRODUCTION_WEBHOOK_URL";
 
                 const response = await fetch(N8N_URL, {
                     method: 'POST',
@@ -103,9 +103,19 @@
                     return;
                 }
 
-                const payload = await response.json();
+                // Get the raw text first to see exactly what n8n sent back
+                const rawResponseText = await response.text();
                 
-                // Read text response out of the custom Agent 3 schema mapping
+                if (!rawResponseText || rawResponseText.trim() === "") {
+                    alert("⚠️ The server completed the run but returned an empty response string. Check that your n8n workflow toggle is switched to ACTIVE.");
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    return;
+                }
+
+                // Safely parse the response string now that we know it has data
+                const payload = JSON.parse(rawResponseText);
+                
+                // Read text response out of your custom Agent 3 schema mapping
                 let rawContent = payload.choices[0].message.content;
                 rawContent = rawContent.replace(/```json/g, "").replace(/```/g, "").trim();
                 
@@ -119,12 +129,6 @@
 
                 // Reveal Output Displays
                 document.getElementById('outputWorkspace').classList.remove('hidden');
-            } catch (err) {
-                alert("Runtime API Orchestration Error: " + err);
-                document.getElementById('emptyState').classList.remove('hidden');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<span>🚀 Launch Agent Loop</span>`;
             }
         }
 

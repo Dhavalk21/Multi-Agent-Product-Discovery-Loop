@@ -86,7 +86,7 @@
             btn.disabled = true;
             btn.innerHTML = `<span>⏳ Processing Loop...</span>`;
 
-          try {
+         try {
                 // YOUR LIVE PRODUCTION WEBHOOK ENDPOINT URL FROM N8N
                 const N8N_URL = "https://kd05.app.n8n.cloud/webhook/product-discovery";
 
@@ -111,49 +111,39 @@
                 }
 
                 let payload = JSON.parse(rawResponseText);
-                let result = null;
+                let innerTextData = "";
 
-                // 🌟 MULTI-LAYER PARSER MAPPING STRATEGY
-                if (payload.market_gaps || payload.prd_markdown) {
-                    result = payload;
-                } 
-                else if (Array.isArray(payload) && payload[0]) {
-                    result = payload[0].market_gaps ? payload[0] : null;
-                    if (!result && payload[0].text) result = payload[0];
-                } 
-                
-                // Fallback: If n8n nested the OpenAI completion object inside the item
-                if (!result && (payload.choices || (payload[0] && payload[0].choices))) {
-                    let choicesSource = payload.choices ? payload : payload[0];
-                    let textBlock = choicesSource.choices[0].message.content;
-                    textBlock = textBlock.replace(/```json/g, "").replace(/```/g, "").trim();
-                    result = JSON.parse(textBlock);
-                }
-                
-                // Final generic fallback if it's completely raw
-                if (!result && typeof payload === 'object') {
-                    // Check if it's nested deep inside an output string key
-                    let possibleText = payload.output || payload.text || payload.response;
-                    if (possibleText) {
-                        possibleText = possibleText.replace(/```json/g, "").replace(/```/g, "").trim();
-                        result = JSON.parse(possibleText);
-                    } else {
-                        result = payload; // Try using it directly
-                    }
+                // 1. EXTRACT THE INNER CONTENT STRING
+                if (payload.message && payload.message.content) {
+                    innerTextData = payload.message.content;
+                } else if (payload.choices && payload.choices[0] && payload.choices[0].message) {
+                    innerTextData = payload.choices[0].message.content;
+                } else if (Array.isArray(payload) && payload[0]) {
+                    let item = payload[0];
+                    if (item.message && item.message.content) innerTextData = item.message.content;
+                    else if (item.choices && item.choices[0] && item.choices[0].message) innerTextData = item.choices[0].message.content;
+                    else innerTextData = typeof item === 'string' ? item : JSON.stringify(item);
+                } else {
+                    innerTextData = typeof payload === 'string' ? payload : JSON.stringify(payload);
                 }
 
-                // Inject targeted data payload parameters cleanly into layout blocks
-                document.getElementById('panel-market').innerText = result.market_gaps || result.output || JSON.stringify(result, null, 2);
-                document.getElementById('panel-personas').innerText = result.persona_feedback || "Processed successfully. See other tabs.";
-                document.getElementById('panel-prd').innerText = result.prd_markdown || "Processed successfully. See other tabs.";
-                document.getElementById('panel-jira').innerText = result.jira_tickets || "Processed successfully. See other tabs.";
+                // 2. STRIP AWAY MARKDOWN SYNTAX WRAPPERS IF PRESENT
+                innerTextData = innerTextData.replace(/```json/g, "").replace(/```/g, "").trim();
+                
+                // 3. PARSE INTO THE FINAL SCHEMA OBJECT
+                const result = JSON.parse(innerTextData);
+
+                // 4. INJECT EACH SPECIFIC KEY INTO ITS MATCHING UI TAB PANEL
+                document.getElementById('panel-market').innerText = result.market_gaps || "No market data found.";
+                document.getElementById('panel-personas').innerText = result.persona_feedback || "No persona data found.";
+                document.getElementById('panel-prd').innerText = result.prd_markdown || "No PRD framework found.";
+                document.getElementById('panel-jira').innerText = result.jira_tickets || "No user stories mapped.";
 
                 // Reveal Output Workspace Section Containers
                 document.getElementById('outputWorkspace').classList.remove('hidden');
             } catch (err) {
-                console.error("Payload Unpacking Diagnostic Exception trace:", err);
-                // Fixed scope error by using fallback string checks safely
-                alert("Runtime Parsing Match Failed.\n\nError: " + err.message);
+                console.error("Parsing Exception trace:", err);
+                alert("Formatting Error: " + err.message + "\n\nWe couldn't unpack the tab data safely. Check your browser console log for details.");
                 document.getElementById('emptyState').classList.remove('hidden');
             } finally {
                 btn.disabled = false;

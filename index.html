@@ -80,7 +80,7 @@
     </div>
 
     <script>
-        async function runDiscoveryPipeline() {
+       async function runDiscoveryPipeline() {
             const inputIdea = document.getElementById('productIdea').value;
             if (!inputIdea) {
                 alert("Please enter a concept prompt target first.");
@@ -93,6 +93,11 @@
             const term = document.getElementById('terminalBlock');
             term.classList.remove('hidden');
 
+            // Reset console simulation text states
+            document.getElementById('tStep1').classList.add('hidden');
+            document.getElementById('tStep2').classList.add('hidden');
+            document.getElementById('tStep3').classList.add('hidden');
+
             setTimeout(() => { document.getElementById('tStep1').classList.remove('hidden'); }, 500);
             setTimeout(() => { document.getElementById('tStep2').classList.remove('hidden'); }, 1500);
             setTimeout(() => { document.getElementById('tStep3').classList.remove('hidden'); }, 3000);
@@ -101,9 +106,8 @@
             btn.disabled = true;
             btn.innerHTML = `<span>⏳ Processing Loop...</span>`;
 
-            
-              try {
-                // YOUR LIVE PRODUCTION WEBHOOK ENDPOINT URL FROM N8N
+            try {
+                // ⚠️ REPLACE WITH YOUR LIVE PRODUCTION WEBHOOK ENDPOINT URL FROM N8N:
                 const N8N_URL = "https://kd05.app.n8n.cloud/webhook/product-discovery";
 
                 const response = await fetch(N8N_URL, {
@@ -129,39 +133,42 @@
                 let payload = JSON.parse(rawResponseText);
                 let innerTextData = "";
 
-                // 1. Recursive Deep Search for data content strings or matching keys
-                function extractContent(obj) {
-                    if (!obj) return "";
-                    if (typeof obj === 'string') return obj;
-                    if (obj.market_gaps) return JSON.stringify(obj); // Already at root!
-                    
-                    if (Array.isArray(obj) && obj.length > 0) return extractContent(obj[0]);
-                    
-                    if (obj.message && obj.message.content) return obj.message.content;
-                    if (obj.choices && obj.choices[0]) return extractContent(obj.choices[0]);
-                    if (obj.output || obj.text || obj.response) return obj.output || obj.text || obj.response;
-                    
-                    return JSON.stringify(obj);
+                // Safely extract the content string out of OpenAI / n8n array shapes
+                if (payload.message && payload.message.content) {
+                    innerTextData = payload.message.content;
+                } else if (payload.choices && payload.choices[0] && payload.choices[0].message) {
+                    innerTextData = payload.choices[0].message.content;
+                } else if (Array.isArray(payload) && payload[0]) {
+                    let item = payload[0];
+                    if (item.message && item.message.content) {
+                        innerTextData = item.message.content;
+                    } else if (item.choices && item.choices[0] && item.choices[0].message) {
+                        innerTextData = item.choices[0].message.content;
+                    } else {
+                        innerTextData = typeof item === 'string' ? item : JSON.stringify(item);
+                    }
+                } else {
+                    innerTextData = typeof payload === 'string' ? payload : JSON.stringify(payload);
                 }
 
-                innerTextData = extractContent(payload);
+                // Clean markdown enclosures out of the content body if present
                 innerTextData = innerTextData.replace(/```json/g, "").replace(/```/g, "").trim();
                 
                 let result = {};
                 try {
                     result = JSON.parse(innerTextData);
                 } catch (e) {
-                    // Fallback structural target assignment assignment checking
+                    // Fallback to primary root payload layers if it isn't an internal stringified JSON
                     result = (Array.isArray(payload) ? payload[0] : payload) || {};
                 }
 
-                // If text structure arrives packed flat, fallback gracefully to printing content directly
+                // Smart Mapping: Fallback gracefully to full raw output if unique keys aren't parsed out
                 const marketContent = result.market_gaps || innerTextData;
-                const personaContent = result.persona_feedback || "Review data processed successfully inside main workspace.";
-                const prdContent = result.prd_markdown || "Review framework processed successfully inside main workspace.";
-                const jiraContent = result.jira_tickets || "Review tasks processed successfully inside main workspace.";
+                const personaContent = result.persona_feedback || "No secondary persona metrics returned. Review baseline logs.";
+                const prdContent = result.prd_markdown || "No PRD documentation markdown returned. Review baseline logs.";
+                const jiraContent = result.jira_tickets || "No structured user stories returned. Review baseline logs.";
 
-                // 2. Render out elements seamlessly using Marked Engine
+                // Render out everything cleanly via Marked Engine
                 document.getElementById('panel-market').innerHTML = marked.parse(marketContent);
                 document.getElementById('panel-personas').innerHTML = marked.parse(personaContent);
                 document.getElementById('panel-prd').innerHTML = marked.parse(prdContent);
@@ -169,32 +176,8 @@
 
                 document.getElementById('outputWorkspace').classList.remove('hidden');
             } catch (err) {
-                console.error("Parsing Exception trace:", err);
-                alert("Formatting Error: " + err.message);
-                document.getElementById('emptyState').classList.remove('hidden');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<span>🚀 Launch Agent Loop</span>`;
-            }
-
-                let result = {};
-                try {
-                    innerTextData = innerTextData.replace(/```json/g, "").replace(/```/g, "").trim();
-                    result = JSON.parse(innerTextData);
-                } catch (e) {
-                    result = payload[0] || payload;
-                }
-
-                // Inject formatted Markdown elements via Marked Engine
-                document.getElementById('panel-market').innerHTML = marked.parse(result.market_gaps || "No market data parsed.");
-                document.getElementById('panel-personas').innerHTML = marked.parse(result.persona_feedback || "No persona data parsed.");
-                document.getElementById('panel-prd').innerHTML = marked.parse(result.prd_markdown || "No PRD document text parsed.");
-                document.getElementById('panel-jira').innerHTML = marked.parse(result.jira_tickets || "No user stories parsed.");
-
-                document.getElementById('outputWorkspace').classList.remove('hidden');
-            } catch (err) {
-                console.error("Parsing Exception trace:", err);
-                alert("Formatting Error: " + err.message);
+                console.error("Pipeline breakdown trace:", err);
+                alert("Processing Error: " + err.message);
                 document.getElementById('emptyState').classList.remove('hidden');
             } finally {
                 btn.disabled = false;

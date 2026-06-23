@@ -32,7 +32,7 @@ The pipeline executes through a sequence of specialized node dependencies:
 
 ## 🛠️ How to Import and Setup This Workspace
 
-1. **Copy the Code:** Download the `autonomous_product_discovery_loop.json` workflow file located in this repository.
+1. **Copy the Code:** Download the `autonomous_product_discovery_loop.json` workflow file located in this repository. You can also use `index.html` for simple front-end UI. 
 2. **Import to n8n:** Go to your n8n cloud dashboard, create a brand-new blank workflow canvas, click the top-right menu, and select **Import from File**.
 3. **Set Up LLM Credentials:** Ensure your OpenAI Chat Model nodes are connected to your active API credentials.
 4. **Deploy Output Parsers:** Verify that the attached Structured Output Parsers match your target JSON schemas.

@@ -27,7 +27,6 @@ The pipeline executes through a sequence of specialized node dependencies:
 
 ## 📊 What the Pipeline Looks Like
 
-
 <img width="737" height="191" alt="image" src="https://github.com/user-attachments/assets/7a56da2c-fff6-41d4-b240-1ad979dd7b7f" />
 
 ## 🛠️ How to Import and Setup This Workspace
